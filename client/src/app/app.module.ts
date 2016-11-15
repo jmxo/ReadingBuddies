@@ -1,4 +1,4 @@
-(function () {
+namespace app {
     'use strict';
 
     angular.module('app', [
@@ -7,4 +7,4 @@
         'ngStorage'
     ]);
 
-})();
+}
