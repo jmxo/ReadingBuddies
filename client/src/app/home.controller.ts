@@ -5,12 +5,10 @@ namespace app {
     * Home view controller
     */
     class HomeController {
-        public storage: ng.storage.IStorageService;
+        static $inject = ['$localStorage'];
 
         // @ngInject
-        constructor($localStorage: ng.storage.IStorageService) {
-            this.storage = $localStorage;
-        }
+        constructor(private storage: ng.storage.IStorageService) {}
     }
 
     angular
