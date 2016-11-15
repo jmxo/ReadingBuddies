@@ -1,24 +1,26 @@
-(function () {
+namespace app {
     'use strict';
-
-    angular
-        .module('app')
-        .controller('AdminController', AdminController);
 
     /**
      * Admin view controller
      */
-    // @ngInject
-    function AdminController($localStorage) {
-        var vm = this;
-        vm.storage = $localStorage;
+    class AdminController {
 
-        vm.addReader = function() {
-            vm.storage.readers.push({id: null});
-        };
+        static $inject = ['$localStorage'];
 
-        vm.removeReader = function(index) {
-            vm.storage.readers.splice(index, 1);
-        };
+        // @ngInject
+        constructor(private storage: ng.storage.IStorageService) {}
+
+        public addReader(): void {
+            this.storage['readers'].push({id: null});
+        }
+
+        public removeReader(index: number|string): void {
+            this.storage['readers'].splice(index, 1);
+        }
     }
-})();
+
+    angular
+        .module('app')
+        .controller('AdminController', AdminController);
+}
