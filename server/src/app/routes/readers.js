@@ -21,16 +21,18 @@ function getReaderReviews(req, res, next) {
     // Pull previous result from cache (if found)
     var readerId = req.params['reader_id'];
     var cacheKey = 'readerReviews_' + readerId;
-    cache
-        .wrapAsync(cacheKey, function cacheMiss(cacheCb) {
-            goodreads
-                .getUserReviews(req.params['reader_id'])
-                .asCallback(cacheCb);
-        })
-        .then(function(reviews) {
+    // cache
+    //     .wrapAsync(cacheKey, function cacheMiss(cacheCb) {
+    //         goodreads
+    //             .getUserReviews(req.params['reader_id'])
+    //             .asCallback(cacheCb);
+    //     })
+    goodreads
+        .getUserReviews(req.params['reader_id'])
+        .then(function (reviews) {
             res.json(reviews);
         })
-        .catch(function(err) {
+        .catch(function (err) {
             return next(err);
         });
 }
@@ -43,16 +45,19 @@ function getReaderInfo(req, res, next) {
     // Pull previous result from cache (if found)
     var readerId = req.params['reader_id'];
     var cacheKey = 'readerInfo_' + readerId;
-    cache
-        .wrapAsync(cacheKey, function cacheMiss(cacheCb) {
-            goodreads
-                .getUserInfo(req.params['reader_id'])
-                .asCallback(cacheCb);
-        })
-        .then(function(userInfo) {
+    // cache
+    //     .wrapAsync(cacheKey, function cacheMiss(cacheCb) {
+    //         goodreads
+    //             .getUserInfo(req.params['reader_id'])
+    //             .asCallback(cacheCb);
+    //     })
+
+    goodreads
+        .getUserInfo(req.params['reader_id'])
+        .then(function (userInfo) {
             res.json(userInfo);
         })
-        .catch(function(err) {
+        .catch(function (err) {
             return next(err);
         });
 }

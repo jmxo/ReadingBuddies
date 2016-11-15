@@ -2,7 +2,7 @@
 
 var path = require('path');
 var fs = require('fs');
-var gulp = require('gulp-help')(require('gulp'), {hideDepsMessage: true});
+var gulp = require('gulp-help')(require('gulp'), { hideDepsMessage: true });
 var args = require('yargs').argv;
 var through = require('through2');
 var browserSync = require('browser-sync').create();
@@ -35,10 +35,10 @@ var isVerbose = args.verbose;    // Enable extra verbose logging
 var isProduction = args.prod;    // Run extra steps (minification) with production flag --prod
 
 var paths = {
-    clientSrc:   'client/src',
+    clientSrc: 'client/src',
     clientBuild: 'build/client',
     clientTests: 'client/test',
-    serverSrc:   'server/src',
+    serverSrc: 'server/src',
     serverTests: 'server/test',
     tmp: '.tmp'
 };
@@ -48,10 +48,13 @@ var jsLoadOrder = [
     '**/*.js'
 ];
 var jsLintPaths = [
-    path.join(paths.clientSrc, '/app/**/*.js'),
+    //path.join(paths.clientSrc, '/app/**/*.js'),
     path.join(paths.clientTests, '/**/*.js'),
     path.join(paths.serverSrc, '/app/**/*.js'),
     path.join(paths.serverTests, '/**/*.js')
+];
+var tsLintPaths = [
+    path.join(paths.clientSrc, '/app/**/*.ts')
 ];
 
 //////////////////////////////////////////////////////////
@@ -60,15 +63,15 @@ var jsLintPaths = [
 /**
  * Clean temporary folders and files
  */
-gulp.task('clean', false, function(next) {
+gulp.task('clean', false, function (next) {
     $.del([paths.tmp, paths.clientBuild])
-        .then(function() { next(); });
+        .then(function () { next(); });
 });
 
 /**
  * Create $templateCache from the html templates
  */
-gulp.task('partials', false, function() {
+gulp.task('partials', false, function () {
     return gulp
         .src(path.join(paths.clientSrc, '/app/**/*.html'))
         .pipe($.cached('partials'))
@@ -90,7 +93,7 @@ gulp.task('partials', false, function() {
 /**
  * JS Bundles (vendor and app)
  */
-gulp.task('vendor-scripts', false, function() {
+gulp.task('vendor-scripts', false, function () {
     var stream = gulp
         .src($.mainBowerFiles())
         .pipe($.filter('**/*.js'))
@@ -99,12 +102,15 @@ gulp.task('vendor-scripts', false, function() {
     return scriptProcessing(stream, 'vendor.js');
 });
 
-gulp.task('app-scripts', false, function() {
+gulp.task('app-scripts', false, function () {
+    var tsProject = $.typescript.createProject('client/tsconfig.json');
     var stream = gulp
-        .src(path.join(paths.clientSrc, '/app/**/*.js'))
-        .pipe($.cached('app-scripts'))
-        .pipe($.ngAnnotate({add: true, single_quotes: true}))
-        .pipe($.remember('app-scripts'))
+        .src('client/**/*.ts')
+        .pipe(tsProject())
+        //.pipe($.cached('app-scripts')) these two commented tasks help with compiler bundling, 
+        //to check the cached and not have to re-read all js files from disk every time, only the changes. let's comment it for dev
+        .pipe($.ngAnnotate({ add: true, single_quotes: true }))
+        //.pipe($.remember('app-scripts'))
         .pipe($.order(jsLoadOrder)) // *Important*: Must come after $.remember to preserve order
         .pipe(verbosePrintFiles('app-scripts'));
 
@@ -116,7 +122,7 @@ function scriptProcessing(stream, bundleFile) {
         .pipe($.if(isProduction, $.sourcemaps.init()))
         .pipe($.concat(bundleFile))
         .pipe($.if(isProduction, $.uglify({ preserveComments: $.uglifySaveLicense })))
-            .on('error', errorHandler('uglify'))
+        .on('error', errorHandler('uglify'))
         .pipe($.if(isProduction, $.sourcemaps.write('maps')))
         .pipe(gulp.dest(path.join(paths.clientBuild, '/js/')));
 }
@@ -124,7 +130,7 @@ function scriptProcessing(stream, bundleFile) {
 /**
  * JS Linting
  */
-gulp.task('lint', false, function() {
+gulp.task('jslint', false, function () {
     return gulp
         .src(jsLintPaths)
         .pipe(verbosePrintFiles('lint'))
@@ -133,13 +139,23 @@ gulp.task('lint', false, function() {
         .pipe($.jshint.reporter('fail'));
 });
 
+gulp.task('tslint', false, function () {
+    return gulp
+        .src(tsLintPaths)
+        .pipe(verbosePrintFiles('lint'))
+        .pipe($.tslint({
+            formatter: "verbose"
+        }))
+        .pipe($.tslint.report());
+});
+
 /**
  * JS Code complexity
  */
-gulp.task('complexity', false, function() {
+gulp.task('complexity', false, function () {
     return gulp
         .src([
-            path.join(paths.clientSrc, '/app/**/*.js'),
+            // path.join(paths.clientSrc, '/app/**/*.js'),
             path.join(paths.serverSrc, '/app/**/*.js')
         ])
         .pipe(verbosePrintFiles('complexity'))
@@ -152,14 +168,14 @@ gulp.task('complexity', false, function() {
         }));
 });
 
-gulp.task('analyze', 'Static JavaScript code analysis (linting, complexity)', function(next) {
-    $.runSequence('lint', 'complexity', next);
+gulp.task('analyze', 'Static JavaScript code analysis (linting, complexity)', function (next) {
+    $.runSequence('jslint', 'tslint', 'complexity', next);
 });
 
 /**
  * CSS bundles (vendor and app)
  */
-gulp.task('vendor-styles', false, function() {
+gulp.task('vendor-styles', false, function () {
     return gulp
         .src($.mainBowerFiles())
         .pipe($.filter('**/*.css'))
@@ -168,7 +184,7 @@ gulp.task('vendor-styles', false, function() {
         .pipe(gulp.dest(path.join(paths.clientBuild, '/css/')));
 });
 
-gulp.task('app-styles', false, function() {
+gulp.task('app-styles', false, function () {
     return gulp
         .src(path.join(paths.clientSrc, '/styles/**/*.css'))
         .pipe(verbosePrintFiles('app-styles'))
@@ -181,7 +197,7 @@ gulp.task('app-styles', false, function() {
 /**
  * Vendor fonts
  */
-gulp.task('vendor-fonts', false, function() {
+gulp.task('vendor-fonts', false, function () {
     return gulp.src($.mainBowerFiles())
         .pipe($.filter('**/*.{eot,svg,ttf,woff,woff2,otf}'))
         .pipe(verbosePrintFiles('vendor-fonts'))
@@ -192,7 +208,7 @@ gulp.task('vendor-fonts', false, function() {
 /**
  * Static files copy
  */
-gulp.task('static', false, function() {
+gulp.task('static', false, function () {
     return gulp.src(path.join(paths.clientSrc, '/static/**'))
         .pipe(verbosePrintFiles('static'))
         .pipe(gulp.dest(path.join(paths.clientBuild, '/')));
@@ -201,7 +217,7 @@ gulp.task('static', false, function() {
 /**
  * HTML processing
  */
-gulp.task('html', false, function() {
+gulp.task('html', false, function () {
     return gulp.src(path.join(paths.clientSrc, '/*.html'))
         .pipe(verbosePrintFiles('html'))
         .pipe($.if(isProduction, $.minifyHtml({
@@ -220,34 +236,34 @@ gulp.task('cachebust', false, [
     'partials', 'vendor-scripts', 'app-scripts',
     'vendor-styles', 'app-styles',
     'vendor-fonts', 'static', 'html'
-], function() {
+], function () {
     if (!isProduction) { return; }
 
     // Files to rename and cache bust
     var revFilter = $.filter([
         '**', '!**/*.html', '!**/favicon.ico', '!**/browserconfig.xml', '!**/*.map'
-    ], {restore: true});
+    ], { restore: true });
 
     return gulp
         .src(path.join(paths.clientBuild, '/**'))
         .pipe(revFilter)
         .pipe($.rev())
         .pipe(revFilter.restore)
-        .pipe($.revReplace({replaceInExtensions: ['.js', '.css', '.html', '.xml']}))
+        .pipe($.revReplace({ replaceInExtensions: ['.js', '.css', '.html', '.xml'] }))
         .pipe(gulp.dest(paths.clientBuild))
         .pipe(cleanupRevedFiles())
         .pipe($.rev.manifest())
         .pipe(gulp.dest(paths.clientBuild));
 });
 
-gulp.task('build', false, function(next) {
+gulp.task('build', false, function (next) {
     $.runSequence('clean', 'cachebust', next);
 });
 
 /**
  * Start the Express service with nodemon
  */
-gulp.task('serve', false, function(next) {
+gulp.task('serve', false, function (next) {
     var firstStart = true;
     var serverPort = 8000;
     $.nodemon({
@@ -263,23 +279,23 @@ gulp.task('serve', false, function(next) {
         watch: [paths.serverSrc],
         stdout: false // important for 'readable' event
     })
-    // The http server might not have started listening yet when
-    // the `restart` event has been triggered. It's best to explicitly
-    // check whether it is ready for connections or not.
-    .on('readable', function() {
-        this.stdout.on('data', function(chunk) {
-            isVerbose && process.stdout.write(chunk);
-            if (/listening at http/.test(chunk)) {
-                if (firstStart) {
-                    firstStart = false;
-                    startBrowserSync(serverPort, next);
-                } else {
-                    browserSync.reload();
+        // The http server might not have started listening yet when
+        // the `restart` event has been triggered. It's best to explicitly
+        // check whether it is ready for connections or not.
+        .on('readable', function () {
+            this.stdout.on('data', function (chunk) {
+                isVerbose && process.stdout.write(chunk);
+                if (/listening at http/.test(chunk)) {
+                    if (firstStart) {
+                        firstStart = false;
+                        startBrowserSync(serverPort, next);
+                    } else {
+                        browserSync.reload();
+                    }
                 }
-            }
+            });
+            this.stderr.pipe(process.stdout);
         });
-        this.stderr.pipe(process.stdout);
-    });
 });
 
 function startBrowserSync(serverPort, next) {
@@ -318,10 +334,12 @@ function startBrowserSync(serverPort, next) {
 /**
  * Watch for file changes and rebuild
  */
-gulp.task('watch', false, ['build'], function() {
-    gulp.watch(jsLintPaths.concat('.jshintrc'), ['lint'])
+gulp.task('watch', false, ['build'], function () {
+    gulp.watch(jsLintPaths.concat('.jshintrc'), ['jslint'])
         .on('change', onWatchChange);
-    gulp.watch(path.join(paths.clientSrc, '/app/**/*.js'), ['app-scripts'])
+    gulp.watch(tsLintPaths.concat('client/tslint.json'), ['tslint'])
+        .on('change', onWatchChange);
+    gulp.watch('client/**/*.ts', ['app-scripts'])
         .on('change', onWatchChange);
     gulp.watch(path.join(paths.clientSrc, '/styles/**/*.css'), ['app-styles'])
         .on('change', onWatchChange);
@@ -334,7 +352,7 @@ gulp.task('watch', false, ['build'], function() {
 /**
  * Development watch and serve
  */
-gulp.task('dev', 'Development mode: start server, watch for changes, rebuild', function(next) {
+gulp.task('dev', 'Development mode: start server, watch for changes, rebuild', function (next) {
     $.runSequence('watch', 'serve', next);
 });
 
@@ -342,12 +360,12 @@ gulp.task('dev', 'Development mode: start server, watch for changes, rebuild', f
  * Unit testing
  */
 // Run client-side unit tests (once)
-gulp.task('test-client', false, function(next) {
+gulp.task('test-client', false, function (next) {
     runClientTests(false, next);
 });
 
 // Run client-side unit tests continuously upon file changes
-gulp.task('dev-test-client', false, function(next) {
+gulp.task('dev-test-client', false, function (next) {
     runClientTests(true, next);
 });
 
@@ -365,12 +383,12 @@ function runClientTests(watch, next) {
 }
 
 // Run server-side unit tests (once)
-gulp.task('test-server', false, function() {
+gulp.task('test-server', false, function () {
     return streamServerTests();
 });
 
 // Run client-side unit tests continuously upon file changes
-gulp.task('dev-test-server', false, ['test-server'], function() {
+gulp.task('dev-test-server', false, ['test-server'], function () {
     gulp.watch([
         path.join(paths.serverSrc, '/app/**/*.js'),
         path.join(paths.serverTests, '/**/*.js')
@@ -380,13 +398,13 @@ gulp.task('dev-test-server', false, ['test-server'], function() {
 
 function streamServerTests() {
     return gulp
-        .src(path.join(paths.serverTests, '/**/*.spec.js'), {read: false})
+        .src(path.join(paths.serverTests, '/**/*.spec.js'), { read: false })
         .pipe(verbosePrintFiles('mocha'))
-        .pipe($.mocha({reporter: 'progress'}))
+        .pipe($.mocha({ reporter: 'progress' }))
         .on('error', errorHandler('mocha'));
 }
 
-gulp.task('test', 'Run client/server unit tests (once)', function(next) {
+gulp.task('test', 'Run client/server unit tests (once)', function (next) {
     $.runSequence('test-client', 'test-server', next);
 });
 
@@ -397,21 +415,21 @@ gulp.task('dev-test', 'Run unit tests continuously upon file changes',
  * Default task: clean temporary directories
  * and launch the main build task
  */
-gulp.task('default', 'Performs a clean production build for deployment', function(next) {
+gulp.task('default', 'Performs a clean production build for deployment', function (next) {
     isProduction = true;
     $.runSequence('build', next);
-},{
-    options: {
-        'verbose': 'Verbose debug logging'
-    }
-});
+}, {
+        options: {
+            'verbose': 'Verbose debug logging'
+        }
+    });
 
 //////////////////////////////////////////////////////////
 // Utility functions
 
 function errorHandler(taskName, options) {
     options = options || {};
-    return function(err) {
+    return function (err) {
         $.util.log($.util.colors.red('[' + taskName + ']'), err.toString());
         if (options.exit) {
             process.exit(1);
@@ -422,13 +440,13 @@ function errorHandler(taskName, options) {
 }
 
 function verbosePrintFiles(taskName) {
-    return $.if(isVerbose, $.print(function(filepath) {
+    return $.if(isVerbose, $.print(function (filepath) {
         return '[' + taskName + '] ' + filepath;
     }));
 }
 
 function cleanupRevedFiles() {
-    return through.obj(function(file, enc, next) {
+    return through.obj(function (file, enc, next) {
         this.push(file);
         if (!file.revOrigPath) { return next(); }
         fs.unlink(file.revOrigPath, function (err) {
