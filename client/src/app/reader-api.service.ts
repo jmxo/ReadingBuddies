@@ -1,7 +1,12 @@
 namespace app {
     'use strict';
 
-    class ReaderApi {
+    export interface IReaderApi {
+        getReaderReviews(readerId: string): ng.IPromise<any>;
+        getReaderInfo(readerId: string): ng.IPromise<any>;
+    }
+    
+    class ReaderApi implements IReaderApi {
 
         static $inject = ['$http'];
 
