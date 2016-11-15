@@ -7,6 +7,7 @@ namespace app {
     class HomeController {
         public storage: ng.storage.IStorageService;
 
+        // @ngInject
         constructor($localStorage: ng.storage.IStorageService) {
             this.storage = $localStorage;
         }
