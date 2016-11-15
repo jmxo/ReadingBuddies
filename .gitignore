@@ -6,4 +6,4 @@ coverage/
 build/
 npm-debug.log
 .env
-typings/
+client/typings/
