@@ -1,8 +1,10 @@
 (function () {
     'use strict';
+
     angular
         .module('app')
         .controller('HomeController', HomeController);
+
     /**
      * Home view controller
      */
