@@ -1,15 +1,11 @@
-(function () {
+namespace app {
     'use strict';
-
-    angular
-        .module('app')
-        .directive('latestBookReviews', latestBookReviewsDirective);
 
     /**
      * The latest book reviews for a reader
      * <latest-book-reviews reader-model="reader"/>
      */
-    function latestBookReviewsDirective(readerApi) {
+    function latestBookReviewsDirective(readerApi: IReaderApi): ng.IDirective {
         return {
             restrict: 'EA',
             scope: {
@@ -21,7 +17,7 @@
         };
 
         // @ngInject
-        function latestBookReviewsLink(scope, element, attrs) {
+        function latestBookReviewsLink(scope: any): void {
 
             scope.$watch('readerModel', fetchReaderData);
 
@@ -32,14 +28,14 @@
                 if (scope.readerModel) {
                     readerApi
                         .getReaderReviews(scope.readerModel.id)
-                        .then(function (data) {
+                        .then(data => {
                             console.log(data);
                             scope.reviewData = data;
                         });
 
                     readerApi
                         .getReaderInfo(scope.readerModel.id)
-                        .then(function (data) {
+                        .then(data => {
                             console.log(data);
                             scope.reader = data;
                         });
@@ -47,4 +43,8 @@
             }
         }
     }
-})();
+
+    angular
+        .module('app')
+        .directive('latestBookReviews', latestBookReviewsDirective);
+}
