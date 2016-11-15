@@ -1,0 +1,7 @@
+{
+  "globalDependencies": {
+    "angular": "registry:dt/angular#1.5.0+20161101124950",
+    "jquery": "registry:dt/jquery#1.10.0+20160929162922",
+    "ngstorage": "registry:dt/ngstorage#0.3.10+20160711132043"
+  }
+}
