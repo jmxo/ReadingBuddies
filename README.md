@@ -10,6 +10,10 @@ A simple SPA and REST API demo that aggregates the book reviews of multiple Good
 
 The project is comprised of an Angular SPA, Express REST API, and Gulp build process.
 
+Cloned ES5 version from https://github.com/cgmartin/ReadingBuddies/tree/es5-version then converted the client code to TypeScript, according to the pluralsight course: https://app.pluralsight.com/library/courses/play-by-play-angular-typescript-john-papa-christopher-martin
+
+Fixed issues related to breaking changes of updated gulp plugins (gulp-typescript and gulp-tslint).
+
 ```
   +-------------+
   |   Browser   |
