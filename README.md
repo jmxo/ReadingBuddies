@@ -2,7 +2,7 @@
 
 A simple SPA and REST API demo that aggregates the book reviews of multiple Goodreads users.
 
-Cloned ES5 version from https://github.com/cgmartin/ReadingBuddies/tree/es5-version then converted the client code to TypeScript, according to the pluralsight course: https://app.pluralsight.com/library/courses/play-by-play-angular-typescript-john-papa-christopher-martin
+Cloned ES5 version from https://github.com/cgmartin/ReadingBuddies/tree/es5-version then converted the client code to TypeScript
 
 Fixed issues related to breaking changes of updated gulp plugins (gulp-typescript and gulp-tslint).
 
